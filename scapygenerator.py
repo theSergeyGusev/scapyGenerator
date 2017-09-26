@@ -87,25 +87,26 @@ while i<len(list_of_parameter):
 i=0
 id1=''
 id2=''
-while i<len(list_of_parameter-1):
-    if (list_of_parameter[i+1]=='ipv4'):
-        id0='IP_ID_0'
-        id1='IP_ID_1'
-    if (list_of_parameter[i+1]=='vlan'):
-        id0='VLAN_ID_0'
-        id1='VLAN_ID_1'
-    if (list_of_parameter[i+1]=='vntag'):
-        id0='VNTAG_ID_0'
-        id1='VNTAG_ID_1'
-    if (list_of_parameter[i+1]=='qinq'):
-        id0='QINQ_ID_0'
-        id1='QINQ_ID_1'
-    if (list_of_parameter[i+1]=='mpls'):
-        id0='MPLS_ID_0'
-        id1='MPLS_ID_1'
-
+   
 i=0
 while i<len(list_of_parameter):
+    if i<(len(list_of_parameter)-1):
+        if (list_of_parameter[i+1]=='ipv4'):
+            id0='IP_ID_0'
+            id1='IP_ID_1'
+        if (list_of_parameter[i+1]=='vlan'):
+            id0='VLAN_ID_0'
+            id1='VLAN_ID_1'
+        if (list_of_parameter[i+1]=='vntag'):
+            id0='VNTAG_ID_0'
+            id1='VNTAG_ID_1'
+        if (list_of_parameter[i+1]=='qinq'):
+            id0='QINQ_ID_0'
+            id1='QINQ_ID_1'
+        if (list_of_parameter[i+1]=='mpls'):
+            id0='MPLS_ID_0'
+            id1='MPLS_ID_1'
+
     if (list_of_parameter[i]=='ipv4'):
         command_execute = command_execute + 'IP(src=srcipv4,dst=dstipv4)/'
     if (list_of_parameter[i]=='udp'):
@@ -113,9 +114,9 @@ while i<len(list_of_parameter):
     if (list_of_parameter[i]=='vlan'):
         command_execute = command_execute + 'Dot1Q(vlan=vlanid)/'
     if (list_of_parameter[i]=='vntag'):
-        command_execute = command_execute + 'VNTAG(next_field1 = VLAN_ID_0, next_field2 = VLAN_ID_1)/'
+        command_execute = command_execute + 'VNTAG(next_field1='+id0+', next_field2='+id1+')/'
     if (list_of_parameter[i]=='qinq'):
-        command_execute = command_execute + 'QinQ(id = vlanid,next_field1_qinq = VLAN_ID_0, next_field2_qinq = VLAN_ID_1)/'
+        command_execute = command_execute + 'QinQ(id = vlanid,next_field1_qinq='+id0+', next_field2_qinq='+id1+')/'
     if (list_of_parameter[i]=='mpls'):
         if (mpls_count==1):
             command_execute = command_execute + 'MPLS(label = 255, bottom_of_label_stack =1, TTL = 255)/'
@@ -135,7 +136,7 @@ while p < count_packets:
     dstipv4   = "192.168."+str(10+p/256)+"."+str(p%256)
     srcport = p%256
     dstport = 256+p%256
-    vla_id  = p%100+1
+    vlanid  = p%100+1
     exec(command_execute)
 
 wrpcap("out.pcap", packets)
