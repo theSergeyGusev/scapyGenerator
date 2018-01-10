@@ -23,12 +23,16 @@ VLAN_ID_0 = 0x81
 VLAN_ID_1 = 0x00
 IP_ID_0 = 0x08
 IP_ID_1 = 0x00
+IP_PPPOE_ID_0 = 0x00
+IP_PPPOE_ID_1 = 0x21
 MPLS_ID_0 = 0x88
 MPLS_ID_1 = 0x47
 QINQ_ID_0 = 0x88
 QINQ_ID_1 = 0xA8
 VNTAG_ID_0 = 0x89
 VNTAG_ID_1 = 0x26
+PPPoE_ID_0 = 0x88
+PPPoE_ID_1 = 0x64
 
 class MPLS(Packet):
     name = "MPLS"
@@ -67,8 +71,22 @@ class QinQ(Packet):
     ]
 bind_layers(Ether, QinQ, type = 0x88A8) # Marks QinQ
 
+class PPPoE(Packet):
+    name = "PPPoE"
+    fields_desc =  [
+        BitField("version",           1, 4 ),
+        BitField("type",              1, 4 ),
+        BitField("code",              0, 8 ),
+        BitField("id",                0, 16),
+        BitField("lenght",            0, 16),
+        ByteField("next_field1_pppoe",    0),
+        ByteField("next_field2_pppoe",    0) 
+    ]
+bind_layers(Ether, PPPoE, type = 0x8864) # Marks PPPoE
+
 count_packets=10
 len_data_packets=20
+len_pppoe_data_packets=len_data_packets
 packets=[]
 mac_src = '01:02:03:04:05:06'
 mac_dst = '07:08:09:0A:0B:0C'
@@ -90,10 +108,23 @@ id2=''
    
 i=0
 while i<len(list_of_parameter):
+    if (list_of_parameter[i]=='ipv4'):
+        len_pppoe_data_packets = len_pppoe_data_packets+20
+    if (list_of_parameter[i]=='udp'):
+        len_pppoe_data_packets = len_pppoe_data_packets+8
+    if (list_of_parameter[i]=='pppoe'):
+        len_pppoe_data_packets = len_pppoe_data_packets+2
+    i=i+1
+
+i=0
+while i<len(list_of_parameter):
     if i<(len(list_of_parameter)-1):
-        if (list_of_parameter[i+1]=='ipv4'):
+        if (list_of_parameter[i+1]=='ipv4' and list_of_parameter[i]!='pppoe'):
             id0='IP_ID_0'
             id1='IP_ID_1'
+        if (list_of_parameter[i+1]=='ipv4' and list_of_parameter[i]=='pppoe'):
+            id0='IP_PPPOE_ID_0'
+            id1='IP_PPPOE_ID_1'
         if (list_of_parameter[i+1]=='vlan'):
             id0='VLAN_ID_0'
             id1='VLAN_ID_1'
@@ -106,6 +137,9 @@ while i<len(list_of_parameter):
         if (list_of_parameter[i+1]=='mpls'):
             id0='MPLS_ID_0'
             id1='MPLS_ID_1'
+        if (list_of_parameter[i+1]=='pppoe'):
+            id0='PPPoE_ID_0'
+            id1='PPPoE_ID_1'
 
     if (list_of_parameter[i]=='ipv4'):
         command_execute = command_execute + 'IP(src=srcipv4,dst=dstipv4)/'
@@ -123,6 +157,8 @@ while i<len(list_of_parameter):
         else:
             command_execute = command_execute + 'MPLS(label = 255, bottom_of_label_stack =0, TTL = 255)/'            
         mpls_count=mpls_count-1
+    if (list_of_parameter[i]=='pppoe'):
+        command_execute = command_execute + 'PPPoE(lenght='+str(len_pppoe_data_packets)+', next_field1_pppoe='+id0+', next_field2_pppoe='+id1+')/'
 
     i=i+1
 

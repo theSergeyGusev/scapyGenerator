@@ -4,6 +4,7 @@ this is a simple pcap generator using scapy. Generator supports the following in
 * vlan
 * vntag
 * mpls
+* pppoe
 * ipv4
 * udp
 
